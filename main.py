@@ -180,18 +180,21 @@ if __name__ == '__main__':
 
                     # getting table data
                     table_data = []
-                    table_element = driver.find_element(By.ID,'table_expedientes')
-                    rows = table_element.find_elements(By.TAG_NAME, "tr") # get all of the rows in the table
-                    for row in rows:
-                        # Get the columns (all the column 2)
-                        cols = row.find_elements(By.TAG_NAME, "td")
+                    try:
+                        table_element = driver.find_element(By.ID,'table_expedientes')
+                        rows = table_element.find_elements(By.TAG_NAME, "tr") # get all of the rows in the table
+                        for row in rows:
+                            # Get the columns (all the column 2)
+                            cols = row.find_elements(By.TAG_NAME, "td")
 
-                        if len(cols) != 2:
-                            continue
+                            if len(cols) != 2:
+                                continue
 
-                        expendidate = cols[0].text
-                        actor_demando = cols[1].text
-                        table_data.append([expendidate, actor_demando])
+                            expendidate = cols[0].text
+                            actor_demando = cols[1].text
+                            table_data.append([expendidate, actor_demando])
+                    except:
+                        pass
                     try:
                         table_element = driver.find_element(By.ID,'table_convocatoria')
                         rows = table_element.find_elements(By.TAG_NAME, "tr") # get all of the rows in the table
@@ -217,7 +220,9 @@ if __name__ == '__main__':
                         print(pdf_file)
                         pdf_path = os.path.join(dir_path, 'download', pdf_file)
                         if not read_save_fitz_with_table_data(pdf_path, table_data,Laboral_Federal_Foraneos):
-                        	shutil.copyfile(pdf_path, os.path.join("hard", pdf_file))
+                            if not read_save_fitz_with_table_data(pdf_path, table_data,Laboral_Federal_Foraneos):
+                                if not read_save_fitz_with_table_data(pdf_path, table_data,Laboral_Federal_Foraneos):
+                        	        shutil.copyfile(pdf_path, os.path.join("hard", pdf_file))
                         #shutil.move(pdf_path, os.path.join("All", pdf_file))
                         os.remove(pdf_path)
 

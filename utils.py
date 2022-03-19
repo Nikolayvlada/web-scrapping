@@ -13,6 +13,56 @@ import shutil
 import fitz  # this is pymupdf
 from difflib import SequenceMatcher
 
+
+
+def upper_text(text):
+    text = text.upper()
+    text = text.replace('Á', 'A')
+    text = text.replace('É', 'E')
+    text = text.replace('Í', 'I')
+    text = text.replace('Ó', 'O')
+    text = text.replace('Ö', 'O')
+    text = text.replace('Ú', 'U')
+    text = text.replace('Ü', 'U')
+    text = text.replace('Ñ', 'N')
+    text = text.replace('  ', ' ')
+    return text
+
+def get_acuerdos(string, substring):
+
+    candidate_string = ''
+    acuerdos_string = ''
+
+    try:
+        if len(string) < len(substring):
+            string, substring = substring, string
+
+        content_list = string.split('\n')
+        content_list = list(filter(('').__ne__, content_list))
+        temp_string = ''
+        coef_list = []
+        for i in range(len(content_list)):
+            temp_string += content_list[i]
+            coef = similar(temp_string, substring)
+            coef_list.append(coef)
+        # print(coef_list)
+        max_index = coef_list.index(max(coef_list))
+        actor_demando_string = ''.join(content_list[:max_index + 1])
+
+        acuerdos_list = content_list[max_index + 1:]
+        
+
+        if len(acuerdos_list[-2].strip()) == 0:
+            acuerdos_list = acuerdos_list[:-2]
+
+        # print(acuerdos_list)
+
+        acuerdos_string = '\n'.join(acuerdos_list)
+        return acuerdos_string
+    except Exception as e:
+        print(e)
+        return ''
+
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
@@ -101,7 +151,7 @@ def read_save_pyminer(pdf_filename, mongdb_name = False):
         # convert pdf to text
         text = convert_pdf_to_txt(pdf_filename)
         text_list = text.split('\n')
-
+        
         # check page numbers and title
         for sub_text in text_list:
             if 'g i n a' in sub_text:
@@ -127,7 +177,7 @@ def read_save_pyminer(pdf_filename, mongdb_name = False):
         text = text.replace('\n\n\n', '\n')
 
         # modify ENTIDAD
-        ENTIDAD = ENTIDAD.replace('Guadalajara', 'Guadalaiara')
+        # ENTIDAD = ENTIDAD.replace('Guadalajara', 'Guadalaiara')
         
         # replace letters
         if text.find("Expedientes") != -1:
@@ -269,10 +319,9 @@ def read_save_pyminer(pdf_filename, mongdb_name = False):
                 save_dict["sentido_sentencia"] = ''
                 save_dict["resoluciones"] = ''
                 save_dict["origen"] = 'JUNTA FEDERAL DE CONCILIACION Y ARBITRAJE'
-
                 save_dict["fecha_insercion"] = datetime.utcnow()
-                #save_dict["fecha_tecnica"] = datetime.strptime(FECHA, '%d/%m/%Y').isoformat()
-                save_dict["fecha_tecnica"] = datetime.strptime(FECHA, '%d/%m/%Y')
+                save_dict["fecha_tecnica"] = datetime.strptime(FECHA, "%d/%m/%Y")
+
                 outputs.append(save_dict)
 
             if len(outputs) == 0:
@@ -396,7 +445,7 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
             text = text.replace(footer, '')
 
         # modify ENTIDAD
-        ENTIDAD = ENTIDAD.replace('Guadalajara', 'Guadalaiara')
+        # ENTIDAD = ENTIDAD.replace('Guadalajara', 'Guadalaiara')
 
         text_list = text.split('\n')
         new_text_list = []
@@ -483,8 +532,8 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
 
         try:
             for i in range(len(index_list)-1):
-                # print(i + 1)
-                # print()
+                print(i + 1)
+                print()
                 save_dict = {}
                 sub_contents = content[index_list[i] : index_list[i + 1]]
                 if len(gropu) != 0:
@@ -598,8 +647,7 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
                 save_dict["resoluciones"] = ''
                 save_dict["origen"] = 'JUNTA FEDERAL DE CONCILIACION Y ARBITRAJE'
                 save_dict["fecha_insercion"] = datetime.utcnow()
-                #save_dict["fecha_tecnica"] = datetime.strptime(FECHA, '%d/%m/%Y').isoformat()
-                save_dict["fecha_tecnica"] = datetime.strptime(FECHA, '%d/%m/%Y')
+                save_dict["fecha_tecnica"] = datetime.strptime(FECHA, "%d/%m/%Y")
 
                 outputs.append(save_dict)
             
@@ -618,14 +666,267 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
         print(e)
         return False
 
+def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False):
+
+    try:
+            
+        common_title = []
+
+        with fitz.open(pdf_filename) as doc:
+            text = ""
+            for i, page in enumerate(doc):
+                sub_text = page.get_text()
+                text += sub_text
+
+                if len(common_title) < 2:
+                    common_title.append(sub_text)
+            
+        page_num = i + 1
+
+        # print(text)
+
+        title = ''
+        try:
+            common_title_string_1 = find_common_string(common_title[0][:100], common_title[1][:100])
+            common_title_string_2 = common_title[0][:common_title[0].find('Num')]
+            if len(common_title_string_1) > len(common_title_string_2):
+                common_title_string = common_title_string_1
+            else:
+                common_title_string = common_title_string_2
+            common_title_list = common_title_string.split('   ')
+
+            if len(common_title_list) >= 2 :
+                for item in common_title_list:
+                    if len(item) == 0:
+                        continue
+                    if len(title) == 0:
+                        title = item
+            
+            JUZGADO = text[:text.find(title)]
+            JUZGADO = JUZGADO.strip()
+            footer = JUZGADO
+            if JUZGADO == '':
+                JUZGADO = text[:text.find('g i n a')]
+            JUZGADO = JUZGADO.split('\n')
+            for item in JUZGADO:
+                item = item.strip()
+                if len(item) > 10:
+                    break
+            JUZGADO = item
+
+            footer = footer[footer.find(JUZGADO):].replace(JUZGADO, '')
+            # if footer == '':
+            #     footer = 
+
+            for i in range(page_num):
+                new_footer = footer.replace('1', str(i + 1))
+                text = text.replace(new_footer, '')
+            text = text.replace(JUZGADO.upper(), '')
+            title_list = title.split('\n') 
+
+            if title == '':
+                raise ValueError
+        except:
+            title = text[:text.find("Expedientes")]
+            if len(title) > 100:
+                title = text[:text.find("Num.")]
+            text = text.replace(title, '')
+            split_title = title.split('\n')
+            title_list = []
+            for item in split_title:
+                item =item.strip()
+                if len(item) == 0:
+                    continue
+                title_list.append(item)
+            
+            if page_num == 1:
+                JUZGADO = title_list[0]
+            title_list = [title_list[-1]]
+            common_title_string = title_list[0]
+
+            if page_num > 1:
+                footer = 'P á g i n a  1'
+
+                for i in range(page_num):
+                    new_footer = footer.replace('1', str(i + 1))
+                    ' | 6'
+                    text = text.replace(new_footer, '')
+                    text = text.replace(' | ' + str(i + 1), '')
+                text = text.replace(JUZGADO.upper(), '')
+        
+        for item in title_list:
+            item = item.strip()
+            if len(item) == 0:
+                continue
+            if len(item) < 10:
+                continue
+            
+            item = item.split(',')
+            if len(item) < 2:
+                continue
+            ENTIDAD = item[0]
+            FECHA = item[1]
+
+        for i in range(page_num):
+            footer = title.replace('g i n a  1', 'g i n a  ' + str(i + 1))
+            text = text.replace(footer, '')
+
+        # modify ENTIDAD
+        # ENTIDAD = ENTIDAD.replace('Guadalajara', 'Guadalaiara')
+
+        text_list = text.split('\n')
+        new_text_list = []
+        for text in text_list:
+            if 'g i n a' in text:
+                continue 
+            if similar(FECHA, text) > 0.7:
+                continue
+            if FECHA in text:
+                continue
+            if 'Num.' in text:
+                continue 
+            new_text_list.append(text)
+        text = '\n'.join(new_text_list)
+        
+        # modify FECHA
+        FECHA = handle_date(FECHA)
+
+        try:
+            text = text.replace(common_title_string, '')
+        except:
+            pass
+        
+        if text.find("Expedientes") != -1:
+            content = text[text.find("Expedientes"):]
+        else:
+            content = text
+        
+        
+        if True:
+            content = upper_text(content)
+            content = content.replace(JUZGADO.upper(), '')
+
+        index_list = []
+        for i, data in enumerate(table_data):
+            temp_expendidate, temp_actor_demando = data
+            temp_actor_demando = upper_text(temp_actor_demando)
+
+            expendidate_index = content.find(temp_expendidate)
+            if expendidate_index != -1:
+                index_list.append(expendidate_index)
+            
+            table_data[i] = [temp_expendidate, temp_actor_demando]
+
+        for i in range(len(index_list)):
+            for j in range(i, len(index_list)):
+                if index_list[i] > index_list[j]:
+                    table_data[i], table_data[j] = table_data[j], table_data[i]
+
+        index_list.append(-1)
+
+        outputs = []
+
+        try:
+            for i in range(len(index_list)-1):
+                # print(i + 1)
+                # print()
+                save_dict = {}
+                sub_contents = content[index_list[i] : index_list[i + 1]]
+
+                if len(sub_contents) == 0:
+                    continue
+                
+                # get expediente and actor_demando
+                expediente = table_data[i][0]
+                temp_actor_demando = table_data[i][1]
+
+                sub_contents = sub_contents.replace(expediente, '')
+
+                versus_index = find_vs(temp_actor_demando)
+
+                sub_strings = []
+                
+                sub_strings.append(temp_actor_demando[:versus_index])
+                sub_strings.append(temp_actor_demando[versus_index + 2:])
+
+                acuerdos = get_acuerdos(sub_contents, temp_actor_demando)
+
+                sub_strings.append(acuerdos)
+
+                for j, sub_string in enumerate(sub_strings):
+                    if j == 2:
+                        if '\nREPRESENTANTE' in sub_string:
+                            sub_string = sub_string[:sub_string.find('REPRESENTANTE DE')]
+                            try:
+                                sub_string = sub_string[:sub_string.rindex('.')]
+                                sub_string += '.'
+                            except:
+                                pass
+                        if '\nSECRETARIO DE' in sub_string:
+                            sub_string = sub_string[:sub_string.find('SECRETARIO DE')]
+                    
+                    sub_string = sub_string.split('\n')
+                    sub_string = list(filter(('').__ne__, sub_string))
+
+                    sub_string = ''.join(sub_string)
+                    sub_string = sub_string.strip()
+                    sub_strings[j] = sub_string
+
+                # current_time = datetime.now()
+
+                save_dict["actor"] = sub_strings[0]
+                save_dict["demandado"] = sub_strings[1]
+                save_dict["entidad"] = ENTIDAD
+                save_dict["expediente"] = expediente
+                save_dict["fecha"] = FECHA
+                save_dict["fuero"] = 'COMUN'
+                save_dict["juzgado"] = JUZGADO
+                save_dict["tipo"] = "LABORAL"    #expediente
+                save_dict["acuerdos"] = sub_strings[2]
+                save_dict["monto"] = ''
+                save_dict["fecha_presentacion"] = ''
+                save_dict["actos_reclamados"] = ''
+                save_dict["actos_reclamados_especificos"] = ''
+                save_dict["naturaleza_procedimiento"] = ''
+                save_dict["prestacion_demandada"] = ''
+                save_dict["organo_jurisdiccional_origen"] = ''
+                save_dict["expediente_origen"] = ''
+                save_dict["materia"] = "LABORAL"  #expediente
+                save_dict["submateria"] = ''
+                save_dict["fecha_sentencia"] = ''
+                save_dict["sentido_sentencia"] = ''
+                save_dict["resoluciones"] = ''
+                save_dict["origen"] = 'JUNTA FEDERAL DE CONCILIACION Y ARBITRAJE'
+                save_dict["fecha_insercion"] = datetime.utcnow()
+                save_dict["fecha_tecnica"] = datetime.strptime(FECHA, "%d/%m/%Y")
+
+                outputs.append(save_dict)
+            
+            if len(outputs) == 0:
+                return False
+
+            for output in outputs:
+                #print(output)
+                if mongdb_name is not None:
+                    mongdb_name.insert_one(output)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+
+
 if __name__ == '__main__':
 
     client = pymongo.MongoClient("mongodb://localhost:27017/")
-    database = client["Crudo"]
-    Laboral_Federal_Foraneos = database["Laboral_Federal_Foraneos"]
+    database = client["boletin"]
+    raw = database["raw"]
     
-    pdf_path = "hard\\boletin_23_2021-02-09.pdf"
+    pdf_path = "hard\\boletin_1_2021-11-19.pdf"
 
     # print(read_save_pyminer(pdf_path, raw))
 
-    print(read_save_fitz(pdf_path, Laboral_Federal_Foraneos))
+    print(read_save_fitz_with_table_data(pdf_path, raw))

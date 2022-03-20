@@ -532,8 +532,8 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
 
         try:
             for i in range(len(index_list)-1):
-                print(i + 1)
-                print()
+                # print(i + 1)
+                # print()
                 save_dict = {}
                 sub_contents = content[index_list[i] : index_list[i + 1]]
                 if len(gropu) != 0:

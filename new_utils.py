@@ -17,14 +17,14 @@ import itertools
 
 def upper_text(text):
     text = text.upper()
-    text = text.replace('Á', 'A')
-    text = text.replace('É', 'E')
-    text = text.replace('Í', 'I')
-    text = text.replace('Ó', 'O')
-    text = text.replace('Ö', 'O')
-    text = text.replace('Ú', 'U')
-    text = text.replace('Ü', 'U')
-    text = text.replace('Ñ', 'N')
+    text = text.replace('Ã', 'A')
+    text = text.replace('Ã‰', 'E')
+    text = text.replace('Ã', 'I')
+    text = text.replace('Ã“', 'O')
+    text = text.replace('Ã–', 'O')
+    text = text.replace('Ãš', 'U')
+    text = text.replace('Ãœ', 'U')
+    text = text.replace('Ã‘', 'N')
     text = text.replace('  ', ' ')
     return text
 
@@ -47,6 +47,7 @@ def get_acuerdos(string, substring):
             coef_list.append(coef)
             if len(temp_string) > 2 * len(substring):
                 break
+        # print(coef_list)
         max_index = coef_list.index(max(coef_list))
         actor_demando_string = ''.join(content_list[:max_index + 1])
 
@@ -186,17 +187,17 @@ def read_save_pyminer(pdf_filename, mongdb_name = False):
         else:
             content = text
         content = content.upper()
-        content = content.replace('Á', 'A')
-        content = content.replace('É', 'E')
-        content = content.replace('Í', 'I')
-        content = content.replace('Ó', 'O')
-        content = content.replace('Ö', 'O')
-        content = content.replace('Ú', 'U')
-        content = content.replace('Ü', 'U')
-        # content = content.replace('Ñ', 'N')
+        content = content.replace('Ã', 'A')
+        content = content.replace('Ã‰', 'E')
+        content = content.replace('Ã', 'I')
+        content = content.replace('Ã“', 'O')
+        content = content.replace('Ã–', 'O')
+        content = content.replace('Ãš', 'U')
+        content = content.replace('Ãœ', 'U')
+        # content = content.replace('Ã‘', 'N')
         content = content.replace('  ', ' ')
-        content = content.replace('“', '"')
-        content = content.replace('”', '"')
+        content = content.replace('â€œ', '"')
+        content = content.replace('â€', '"')
         
         # print(content)
         old_content = content
@@ -419,7 +420,7 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
             common_title_string = title_list[0]
 
             if page_num > 1:
-                footer = 'P á g i n a  1'
+                footer = 'P Ã¡ g i n a  1'
 
                 for i in range(page_num):
                     new_footer = footer.replace('1', str(i + 1))
@@ -477,14 +478,14 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
         
         if True:
             content = content.upper()
-            content = content.replace('Á', 'A')
-            content = content.replace('É', 'E')
-            content = content.replace('Í', 'I')
-            content = content.replace('Ó', 'O')
-            content = content.replace('Ö', 'O')
-            content = content.replace('Ú', 'U')
-            content = content.replace('Ü', 'U')
-            content = content.replace('Ñ', 'N')
+            content = content.replace('Ã', 'A')
+            content = content.replace('Ã‰', 'E')
+            content = content.replace('Ã', 'I')
+            content = content.replace('Ã“', 'O')
+            content = content.replace('Ã–', 'O')
+            content = content.replace('Ãš', 'U')
+            content = content.replace('Ãœ', 'U')
+            content = content.replace('Ã‘', 'N')
             content = content.replace('  ', ' ')
             content = content.replace(JUZGADO.upper(), '')
 
@@ -585,8 +586,8 @@ def read_save_fitz(pdf_filename, mongdb_name = False):
                             except:
                                 break
 
-                sub_contents = sub_contents.replace('“', ' ')
-                sub_contents = sub_contents.replace('”', ' ')
+                sub_contents = sub_contents.replace('â€œ', ' ')
+                sub_contents = sub_contents.replace('â€', ' ')
                 
 
                 versus_index = find_vs(sub_contents)
@@ -746,7 +747,7 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
             common_title_string = title_list[0]
 
             if page_num > 1:
-                footer = 'P á g i n a  1'
+                footer = 'P Ã¡ g i n a  1'
 
                 for i in range(page_num):
                     new_footer = footer.replace('1', str(i + 1))

@@ -836,7 +836,7 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
                         index_list[i], index_list[j] = index_list[j], index_list[i] 
 
             for k in range(len(index_list) - 1):
-                if index_list[k + 1] - index_list[k] < 3:
+                if index_list[k + 1] - index_list[k] < 5:
                     temp_expendidate = normal_table[k + 1][0]
                     new_index = www = [m.start() for m in re.finditer(temp_expendidate, content)][-1]
                     index_list[k + 1] = new_index

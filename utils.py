@@ -810,33 +810,42 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
         index_list = []
         table_data = list(table_data for table_data,_ in itertools.groupby(table_data))
 
-        for i, data in enumerate(table_data):
-            temp_expendidate, temp_actor_demando = data
-            temp_actor_demando = upper_text(temp_actor_demando)
+        if len(table_data[0][0]) == 1:
+            for i, data in enumerate(table_data):
+                temp_expendidate, temp_actor_demando = data
+                temp_actor_demando = upper_text(temp_actor_demando)
 
-            expendidate_index = content.find(temp_expendidate)
-            if expendidate_index != -1:
-                index_list.append(expendidate_index)
+                expendidate_index = content.find(temp_expendidate)
+                if expendidate_index != -1:
+                    index_list.append(expendidate_index)
+                
+                table_data[i] = [temp_expendidate, temp_actor_demando]
+
+            for i in range(len(index_list)):
+                for j in range(i, len(index_list)):
+                    if index_list[i] > index_list[j]:
+                        table_data[i], table_data[j] = table_data[j], table_data[i]
+                        index_list[i], index_list[j] = index_list[j], index_list[i]
             
-            table_data[i] = [temp_expendidate, temp_actor_demando]
+            for k in range(len(index_list) - 1):
+                if index_list[k + 1] - index_list[k] < 3:
+                    temp_expendidate = table_data[k + 1][0]
+                    new_index = www = [m.start() for m in re.finditer(temp_expendidate, content)][-1]
+                    index_list[k + 1] = new_index
 
-        for i in range(len(index_list)):
-            for j in range(i, len(index_list)):
-                if index_list[i] > index_list[j]:
-                    table_data[i], table_data[j] = table_data[j], table_data[i]
-                    index_list[i], index_list[j] = index_list[j], index_list[i]
-        
-        for k in range(len(index_list) - 1):
-            if index_list[k + 1] - index_list[k] < 3:
-                temp_expendidate = table_data[k + 1][0]
-                new_index = www = [m.start() for m in re.finditer(temp_expendidate, content)][-1]
-                index_list[k + 1] = new_index
+                    for i in range(len(index_list)):
+                        for j in range(i, len(index_list)):
+                            if index_list[i] > index_list[j]:
+                                table_data[i], table_data[j] = table_data[j], table_data[i]
+                                index_list[i], index_list[j] = index_list[j], index_list[i] 
+        else:
+            for i, data in enumerate(table_data):
+                temp_expendidate_list, temp_actor_demando = data
+                temp_actor_demando = upper_text(temp_actor_demando)
 
-                for i in range(len(index_list)):
-                    for j in range(i, len(index_list)):
-                        if index_list[i] > index_list[j]:
-                            table_data[i], table_data[j] = table_data[j], table_data[i]
-                            index_list[i], index_list[j] = index_list[j], index_list[i] 
+                temp_expendidate = 'Expediente Laboral: ' + temp_expendidate_list[0] + ' Amparo: ' + temp_expendidate_list[1]
+                table_data[i] = [temp_expendidate, temp_actor_demando]
+            index_list = [m.start() for m in re.finditer('EXPEDIENTE LABORAL: ', content)]
 
         index_list.append(-1)
 

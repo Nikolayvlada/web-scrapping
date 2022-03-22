@@ -210,6 +210,23 @@ if __name__ == '__main__':
                             table_data.append([expendidate, actor_demando])
                     except:
                         pass
+
+                    try:
+                        table_element = driver.find_element(By.ID,'table_amparos')
+                        rows = table_element.find_elements(By.TAG_NAME, "tr") # get all of the rows in the table
+                        for row in rows:
+                            # Get the columns (all the column 2)
+                            cols = row.find_elements(By.TAG_NAME, "td")
+                            
+                            if len(cols) != 3:
+                                continue
+
+                            expendidate = [cols[0].text, cols[1].text]
+                            actor_demando = cols[2].text
+                            table_data.append([expendidate, actor_demando])
+                    except:
+                        pass
+
                     # back to home page
                     driver.back()
 

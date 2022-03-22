@@ -808,9 +808,9 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
             content = content.replace(JUZGADO.upper(), '')
 
         index_list = []
-        table_data = list(table_data for table_data,_ in itertools.groupby(table_data))
 
         if len(table_data[0][0]) == 1:
+            table_data = list(table_data for table_data,_ in itertools.groupby(table_data))
             for i, data in enumerate(table_data):
                 temp_expendidate, temp_actor_demando = data
                 temp_actor_demando = upper_text(temp_actor_demando)

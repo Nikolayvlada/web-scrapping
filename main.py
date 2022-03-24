@@ -237,9 +237,9 @@ if __name__ == '__main__':
                         print(pdf_file)
                         pdf_path = os.path.join(dir_path, 'download', pdf_file)
                         if not read_save_fitz_with_table_data(pdf_path, table_data, Laboral_Federal_Foraneos):
-                            if not read_save_pyminer(pdf_path, Laboral_Federal_Foraneos):
-                                if not read_save_fitz(pdf_path, Laboral_Federal_Foraneos):
-                        	        shutil.copyfile(pdf_path, os.path.join("hard", pdf_file))
+                            # if not read_save_pyminer(pdf_path, Laboral_Federal_Foraneos):
+                            #     if not read_save_fitz(pdf_path, Laboral_Federal_Foraneos):
+                        	shutil.copyfile(pdf_path, os.path.join("hard", pdf_file))
                         #shutil.move(pdf_path, os.path.join("All", pdf_file))
                         os.remove(pdf_path)
 

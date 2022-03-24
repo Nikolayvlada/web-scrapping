@@ -61,7 +61,7 @@ def get_acuerdos(string, substring):
         acuerdos_string = '\n'.join(acuerdos_list)
         return acuerdos_string
     except Exception as e:
-        print(e)
+        #print(e)
         return ''
 
 def similar(a, b):
@@ -853,7 +853,13 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
 
                 temp_expendidate = 'Expediente Laboral: ' + temp_expendidate_list[0] + ' Amparo: ' + temp_expendidate_list[1]
                 amparos_table[i] = [temp_expendidate, temp_actor_demando]
-            index_list += [m.start() for m in re.finditer('EXPEDIENTE LABORAL: ', content)]
+            #index_list += [m.start() for m in re.finditer('EXPEDIENTE LABORAL: ', content)]
+
+            adding_list = [m.start() for m in re.finditer('EXPEDIENTE LABORAL: ', content)]
+
+            if len(adding_list) > len(amparos_table):
+                adding_list = adding_list[-len(amparos_table):]
+            index_list += adding_list
 
         table_data = normal_table + amparos_table
 

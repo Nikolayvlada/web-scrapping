@@ -1,3 +1,5 @@
+
+
 import json
 from datetime import datetime
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -24,7 +26,7 @@ def upper_text(text):
     text = text.replace('Ö', 'O')
     text = text.replace('Ú', 'U')
     text = text.replace('Ü', 'U')
-    text = text.replace('Ñ', 'N')
+    # text = text.replace('Ñ', 'N')
     text = text.replace('  ', ' ')
     return text
 
@@ -838,7 +840,7 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
             for k in range(len(index_list) - 1):
                 if index_list[k + 1] - index_list[k] < 5:
                     temp_expendidate = normal_table[k + 1][0]
-                    new_index = www = [m.start() for m in re.finditer(temp_expendidate, content)][-1]
+                    new_index = [m.start() for m in re.finditer(temp_expendidate, content)][-1]
                     index_list[k + 1] = new_index
 
                     for i in range(len(index_list)):
@@ -903,14 +905,11 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
                 for j, sub_string in enumerate(sub_strings):
                     if j == 2:
                         if '\nREPRESENTANTE' in sub_string:
-                            sub_string = sub_string[:sub_string.find('REPRESENTANTE DE')]
-                            try:
-                                sub_string = sub_string[:sub_string.rindex('.')]
-                                sub_string += '.'
-                            except:
-                                pass
+                            sub_string = sub_string[:sub_string.find('\nREPRESENTANTE DE')]
                         if '\nSECRETARIO DE' in sub_string:
-                            sub_string = sub_string[:sub_string.find('SECRETARIO DE')]
+                            sub_string = sub_string[:sub_string.find('\nSECRETARIO DE')]
+                        if '\nCONVOCATORIA' in sub_string:
+                            sub_string = sub_string[:sub_string.find('\nCONVOCATORIA')]
                     
                     sub_string = sub_string.split('\n')
                     sub_string = list(filter(('').__ne__, sub_string))
@@ -953,9 +952,7 @@ def read_save_fitz_with_table_data(pdf_filename, table_data, mongdb_name = False
                 return False
 
             for output in outputs:
-                #print(output)
-                if mongdb_name is not None:
-                    mongdb_name.insert_one(output)
+                mongdb_name.insert_one(output)
             return True
         except Exception as e:
             print(e)
@@ -977,3 +974,5 @@ if __name__ == '__main__':
     # print(read_save_pyminer(pdf_path, raw))
 
     print(read_save_fitz_with_table_data(pdf_path, raw))
+
+

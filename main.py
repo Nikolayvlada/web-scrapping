@@ -5,6 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.support import expected_conditions as EC
 import time 
 from selenium.webdriver.common.action_chains import ActionChains
+import random
+from tqdm import tqdm
 
 
 from utils import *
@@ -96,12 +98,15 @@ if __name__ == '__main__':
     check_list = []
     cursor = Laboral_Federal_Foraneos.find({})
 
+
     # make check_list of currennt database
     try:
-        for document in cursor:
+        print('Loading data... ... ...')
+        for document in tqdm(cursor):
             item = [document["juzgado"], document["fecha"]]
             if item not in check_list:
                 check_list.append(item)
+        print(check_list)
         print('Data checked....')
     except:
         print('Mongodb error~~~')
@@ -111,10 +116,12 @@ if __name__ == '__main__':
     prefs = {"download.default_directory" : os.path.join(dir_path, 'download')}
     chromeOptions = webdriver.ChromeOptions()
     chromeOptions.add_argument('--headless')
-    chromeOptions.add_argument("--no-sandbox");
-    chromeOptions.add_argument("--disable-dev-shm-usage");
-    chromeOptions.add_argument('--disable-gpu')
+    chromeOptions.add_argument("--no-sandbox")
+    chromeOptions.add_argument("--disable-dev-shm-usage")
     chromeOptions.add_experimental_option("prefs",prefs)
+
+    #py = "128.21.0.0:8080"
+    #chromeOptions.add_argument('--proxy-server=%s' % py)
 
     service = Service("/usr/bin/chromedriver")
 
@@ -122,7 +129,9 @@ if __name__ == '__main__':
     driver = webdriver.Chrome(service=service, options=chromeOptions)
 
     # get Home page
-    driver.get("https://boletin_foraneojfca.stps.gob.mx/")
+    # driver.get('https://boletin_foraneojfca.stps.gob.mx/')
+    driver.get('https://boletinforaneojfca.stps.gob.mx/')
+    #driver.get('https://realpython.com/')
 
     print('Google Chrome launched....')
 
@@ -134,15 +143,38 @@ if __name__ == '__main__':
             print('Junta Especial No. {} scraping started!!!'.format(k + 16))
             print('----------------------------------')
 
+            boletin_name = 'Junta Especial No. {}'.format(k + 16)
+            if not os.path.isdir(os.path.join("All",boletin_name)):
+                os.mkdir(os.path.join("All",boletin_name))
+
             driver.execute_script("$('#MainContent_ddl_junta').val({}).trigger('change')".format(k))
 
             time.sleep(10)
 
+            table_break = True
+
             for i in range(10000):
 
+                if table_break:
 
-                driver.execute_script("$('#dataTables-example').DataTable().destroy();")
-
+                    try:
+                        driver.execute_script("$('#dataTables-example').DataTable().destroy();")
+                    except:
+                        try:
+                            driver.execute_script("$(document).ready(function() {table = $('#dataTables-example').DataTable( {paging: false} ); table.destroy(); } );")
+                            # driver.execute_script("$(document).ready(function() {table = $('#dataTables-example').DataTable( {paging: false} ); table.destroy(); } );")
+                        except Exception as e:
+                            print(e)
+                            continue
+                
+                    time.sleep(2)
+                    try:
+                        alert = driver.switch_to.alert
+                        alert.accept()
+                    except:
+                        pass
+                    time.sleep(1)
+                
                 button_id = PREFIX + str(i)
 
                 try:
@@ -158,10 +190,13 @@ if __name__ == '__main__':
                 td_elements = tr_element.find_elements(By.TAG_NAME, 'td')
 
                 juzgado = td_elements[0].text
+                juzgado = juzgado.upper()
 
                 fecha = handle_table_date(td_elements[1].text)
 
                 if [juzgado, fecha] not in check_list:
+
+                    table_break = True
 
                     check_list.append([juzgado, fecha])
                     print([juzgado, fecha])
@@ -170,8 +205,15 @@ if __name__ == '__main__':
 
                     ActionChains(driver).move_to_element(click_button).click(click_button).perform()
 
-                    # find download button
-                    btn_for_download = driver.find_element(By.ID, "MainContent_btn_generaboletin")
+                    try:
+                        # find download button
+                        btn_for_download = driver.find_element(By.ID, "MainContent_btn_generaboletin")
+                    except:
+                        try:
+                            # find download button
+                            btn_for_download = driver.find_element(By.ID, "MainContent_btn_descargar_boletin_inicio")
+                        except:
+                            continue
 
                     # click to start download
                     btn_for_download.click()
@@ -237,13 +279,16 @@ if __name__ == '__main__':
                         print(pdf_file)
                         pdf_path = os.path.join(dir_path, 'download', pdf_file)
                         if not read_save_fitz_with_table_data(pdf_path, table_data, Laboral_Federal_Foraneos):
-                            # if not read_save_pyminer(pdf_path, Laboral_Federal_Foraneos):
-                            #     if not read_save_fitz(pdf_path, Laboral_Federal_Foraneos):
-                        	shutil.copyfile(pdf_path, os.path.join("hard", pdf_file))
+                            shutil.copyfile(pdf_path, os.path.join("hard", pdf_file))
                         #shutil.move(pdf_path, os.path.join("All", pdf_file))
-                        os.remove(pdf_path)
+                        shutil.move(pdf_path, os.path.join("All",boletin_name, pdf_file))
+                        # os.remove(pdf_path)
+
+                    # sleeping for some time
+                    time.sleep(random.random() * 10)
 
                 else:
+                    table_break = False
                     print('Data is already exists...')
         # waiting for 2hours
         blink(2 * 3600)
